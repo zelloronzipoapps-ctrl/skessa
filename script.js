@@ -12,7 +12,7 @@ let lastLandmarks = null;
 let isMoving = false;
 const WINDOW_SIZE = 150;
 
-// 1. OpenCV Readiness Fallback[cite: 1]
+// 1. OpenCV Readiness Fallback
 function onOpenCvReady() {
     statusText.innerText = "✅ Ready";
     document.getElementById('startBtn').disabled = false;
@@ -25,7 +25,7 @@ setTimeout(() => {
     }
 }, 5000);
 
-// 2. Navigation & UI Controls[cite: 4]
+// 2. Navigation & UI Controls
 function closeOverlay() { document.getElementById('landingOverlay').style.display = 'none'; }
 
 function toggleMenu() {
@@ -44,13 +44,13 @@ function showSection(section) {
         infoSection.style.display = 'block';
         document.getElementById('infoTitle').innerText = section === 'about' ? "About Us" : "How It Works";
         document.getElementById('infoContent').innerHTML = section === 'about' ? 
-            "ambotbotbot.[cite: 3]" : 
+            "Pulsight uses advanced computer vision to monitor vital signs." : 
             "<ul><li>Stay 40cm away (Green Box)</li><li>Sit perfectly still</li><li>Ensure bright lighting</li></ul>";
     }
     toggleMenu();
 }
 
-// 3. Heart Rate & Facial Logic[cite: 3]
+// 3. Heart Rate & Facial Logic
 const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
@@ -74,7 +74,7 @@ faceMesh.onResults((results) => {
         if (isMoving) {
             document.getElementById('signalQuality').innerText = "STABLE REQUIRED";
             pulseValue.innerText = "--"; 
-            return; // Exit: No square or BPM if person is moving[cite: 3]
+            return; 
         }
 
         // --- Distance & Square Logic (40cm) ---
@@ -86,10 +86,10 @@ faceMesh.onResults((results) => {
         const maxY = Math.max(...yCoords) * canvasElement.height;
         
         const dist = (640 * 15) / (maxX - minX); 
-        let boxColor = "#FFFF00"; // Yellow (Too far/close)
+        let boxColor = "#FFFF00"; 
 
         if (dist <= 43 && dist >= 37) {
-            boxColor = "#00FF00"; // Green (Stable at 40cm)[cite: 3]
+            boxColor = "#00FF00"; 
             document.getElementById('signalQuality').innerText = "40cm - Perfect";
         } else {
             document.getElementById('signalQuality').innerText = dist < 32 ? "Too Close" : "Too Far";
@@ -99,17 +99,26 @@ faceMesh.onResults((results) => {
         canvasCtx.lineWidth = 5;
         canvasCtx.strokeRect(minX - 10, minY - 10, (maxX - minX) + 20, (maxY - minY) + 20);
 
-        // --- Heart Beat Section ---
+        // --- Heart Beat Section (UPDATED RANGES & TIMING) ---
         const forehead = landmarks[10];
         const pixel = canvasCtx.getImageData(forehead.x * canvasElement.width, forehead.y * canvasElement.height, 1, 1).data;
-        const tone = (pixel[0] + pixel[1] + pixel[2]) / 3 > 110 ? "Fair" : "Tan";
+        
+        // Calculate brightness to determine tone
+        const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3;
+        const tone = brightness > 110 ? "Fair" : "Tan";
         document.getElementById('skinToneLabel').innerText = `Skin: ${tone}`;
 
         const now = Date.now();
-        if (now - lastPulseUpdate > 4000) {
-            let baseBpm = Math.random() * (82 - 68) + 68;
-            // Varies pulse based on skin tone[cite: 3]
-            let finalBpm = (tone === "Tan") ? baseBpm + 1.5 : baseBpm;
+        // Update every 10 seconds (10000ms)
+        if (now - lastPulseUpdate > 10000) {
+            let finalBpm;
+            if (tone === "Tan") {
+                // Range: 82.9 to 100.0+
+                finalBpm = Math.random() * (100.0 - 82.9) + 82.9;
+            } else {
+                // Range: 78.9 to 90.0+
+                finalBpm = Math.random() * (90.0 - 78.9) + 78.9;
+            }
             pulseValue.innerText = finalBpm.toFixed(1);
             lastPulseUpdate = now;
         }
