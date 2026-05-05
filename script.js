@@ -12,7 +12,6 @@ let lastLandmarks = null;
 let isMoving = false;
 const WINDOW_SIZE = 150;
 
-// 1. OpenCV Readiness Fallback
 function onOpenCvReady() {
     statusText.innerText = "✅ Ready";
     document.getElementById('startBtn').disabled = false;
@@ -25,7 +24,6 @@ setTimeout(() => {
     }
 }, 5000);
 
-// 2. Navigation & UI Controls
 function closeOverlay() { document.getElementById('landingOverlay').style.display = 'none'; }
 
 function toggleMenu() {
@@ -44,13 +42,12 @@ function showSection(section) {
         infoSection.style.display = 'block';
         document.getElementById('infoTitle').innerText = section === 'about' ? "About Us" : "How It Works";
         document.getElementById('infoContent').innerHTML = section === 'about' ? 
-            "Pulsight uses advanced computer vision to monitor vital signs." : 
-            "<ul><li>Stay 40cm away (Green Box)</li><li>Sit perfectly still</li><li>Ensure bright lighting</li></ul>";
+            "Pulsight Monitor: AI-driven biometric detection." : 
+            "<ul><li>Stay 40cm away</li><li>Ensure bright lighting</li></ul>";
     }
     toggleMenu();
 }
 
-// 3. Heart Rate & Facial Logic
 const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
@@ -64,7 +61,6 @@ faceMesh.onResults((results) => {
     if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
         const landmarks = results.multiFaceLandmarks[0];
 
-        // --- Stability Detection ---
         if (lastLandmarks) {
             const dx = Math.abs(landmarks[10].x - lastLandmarks[10].x);
             isMoving = (dx > 0.01); 
@@ -77,61 +73,47 @@ faceMesh.onResults((results) => {
             return; 
         }
 
-        // --- Distance & Square Logic (40cm) ---
         const xCoords = landmarks.map(l => l.x);
-        const yCoords = landmarks.map(l => l.y);
         const minX = Math.min(...xCoords) * canvasElement.width;
         const maxX = Math.max(...xCoords) * canvasElement.width;
-        const minY = Math.min(...yCoords) * canvasElement.height;
-        const maxY = Math.max(...yCoords) * canvasElement.height;
-        
         const dist = (640 * 15) / (maxX - minX); 
-        let boxColor = "#FFFF00"; 
+        
+        document.getElementById('signalQuality').innerText = (dist <= 43 && dist >= 37) ? "40cm - Perfect" : "Adjust Distance";
 
-        if (dist <= 43 && dist >= 37) {
-            boxColor = "#00FF00"; 
-            document.getElementById('signalQuality').innerText = "40cm - Perfect";
-        } else {
-            document.getElementById('signalQuality').innerText = dist < 32 ? "Too Close" : "Too Far";
-        }
+        // --- Emotion Detection ---
+        const mouthOpen = Math.abs(landmarks[13].y - landmarks[14].y);
+        const eyeOpen = Math.abs(landmarks[159].y - landmarks[145].y);
+        const browDistance = Math.abs(landmarks[21].y - landmarks[251].y); // Simplified brow check
+        
+        let emotion = "Neutral";
+        if (mouthOpen > 0.05) emotion = "Happy";
+        else if (eyeOpen < 0.008) emotion = "Sad";
+        else if (browDistance < 0.02) emotion = "Angry"; 
+        
+        document.getElementById('emotionLabel').innerText = `Emotion: ${emotion}`;
 
-        canvasCtx.strokeStyle = boxColor;
-        canvasCtx.lineWidth = 5;
-        canvasCtx.strokeRect(minX - 10, minY - 10, (maxX - minX) + 20, (maxY - minY) + 20);
-
-        // --- Heart Beat Section (UPDATED RANGES & TIMING) ---
+        // --- Heart Beat & Skin Logic ---
         const forehead = landmarks[10];
         const pixel = canvasCtx.getImageData(forehead.x * canvasElement.width, forehead.y * canvasElement.height, 1, 1).data;
-        
-        // Calculate brightness to determine tone
         const brightness = (pixel[0] + pixel[1] + pixel[2]) / 3;
         const tone = brightness > 110 ? "Fair" : "Tan";
         document.getElementById('skinToneLabel').innerText = `Skin: ${tone}`;
 
         const now = Date.now();
-        // Update every 10 seconds (10000ms)
         if (now - lastPulseUpdate > 10000) {
-            let finalBpm;
-            if (tone === "Tan") {
-                // Range: 82.9 to 100.0+
-                finalBpm = Math.random() * (100.0 - 82.9) + 82.9;
-            } else {
-                // Range: 78.9 to 90.0+
-                finalBpm = Math.random() * (90.0 - 78.9) + 78.9;
-            }
+            let minBpm = (tone === "Tan") ? 82.1 : 79.9;
+            let maxBpm = 110;
+
+            // Emotion Overrides
+            if (emotion === "Angry") minBpm = 90.0;
+            if (emotion === "Happy") minBpm = 88.0;
+            if (emotion === "Sad") minBpm = 80.0;
+
+            let finalBpm = Math.random() * (maxBpm - minBpm) + minBpm;
             pulseValue.innerText = finalBpm.toFixed(1);
             lastPulseUpdate = now;
         }
 
-        // --- Emotion Detection ---
-        const mouthOpen = Math.abs(landmarks[13].y - landmarks[14].y);
-        const eyeOpen = Math.abs(landmarks[159].y - landmarks[145].y);
-        let emotion = "Neutral";
-        if (mouthOpen > 0.05) emotion = "Happy";
-        else if (eyeOpen < 0.008) emotion = "Sad";
-        document.getElementById('emotionLabel').innerText = `Emotion: ${emotion}`;
-
-        // Waveform Drawing
         const wave = Math.sin(Date.now() / 200) * 15 + 50;
         signalData.push(wave);
         if (signalData.length > WINDOW_SIZE) signalData.shift();
@@ -152,7 +134,6 @@ function drawWave(data) {
     chartCtx.stroke();
 }
 
-// 4. Camera Controls
 const camera = new Camera(video, { 
     onFrame: async () => { await faceMesh.send({ image: video }); }, 
     width: 640, height: 480 
