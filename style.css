@@ -1,0 +1,193 @@
+:root {
+    --primary-gradient: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+    --secondary-gradient: linear-gradient(to right, #f78ca0 0%, #f9748f 19%, #fd868c 60%, #fe9a8b 100%);
+    --accent-pink: #ff4d6d;
+    --deep-red: #800f2f;
+    --glass-bg: rgba(255, 255, 255, 0.15);
+    --text-light: #ffffff;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--primary-gradient);
+    background-attachment: fixed;
+    color: var(--text-light);
+    overflow-x: hidden;
+}
+
+/* Landing Page Overlay */
+.overlay-full {
+    background: var(--secondary-gradient);
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.overlay-content {
+    background: var(--glass-bg);
+    backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+#proceedBtn {
+    background: white;
+    color: #ff0844;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#proceedBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Main Container */
+.container {
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+}
+
+.main-logo {
+    width: 120px;
+    border-radius: 50%;
+    border: 3px solid white;
+    margin-bottom: 10px;
+}
+
+/* Video & Canvas */
+.video-container {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 4px solid var(--glass-bg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    background: #000;
+}
+
+#output {
+    width: 100%;
+    display: block;
+}
+
+/* Pulse Display Section[cite: 3, 4] */
+.pulse-display {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 30px;
+    border-radius: 25px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.pulse-value {
+    font-size: 90px;
+    font-weight: 900;
+    text-shadow: 2px 4px 10px rgba(0,0,0,0.2);
+    color: white;
+}
+
+.pulse-unit {
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.9;
+}
+
+/* Stats Boxes */
+.stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    flex: 1;
+    background: rgba(128, 15, 47, 0.4); /* Deep red translucent */
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent-pink);
+}
+
+.stat-label { font-size: 12px; display: block; opacity: 0.8; }
+.stat-value { font-size: 18px; font-weight: bold; }
+
+/* Control Buttons */
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+button#startBtn, button#stopBtn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button#startBtn {
+    background: #ffffff;
+    color: #ff0844;
+}
+
+button#startBtn:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+button#stopBtn {
+    background: var(--deep-red);
+    color: white;
+}
+
+/* Side Nav */
+.side-nav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    background-color: #800f2f;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.side-nav a {
+    padding: 15px 32px;
+    text-decoration: none;
+    font-size: 20px;
+    color: white;
+    display: block;
+    transition: 0.3s;
+}
+
+.side-nav a:hover { background: var(--accent-pink); }
+
+#hamburger {
+    font-size: 30px;
+    cursor: pointer;
+    padding: 15px;
+    position: absolute;
+}
