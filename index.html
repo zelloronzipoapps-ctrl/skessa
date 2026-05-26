@@ -4,34 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PulSight: Pulse Rate Detector</title>
-    <!-- Links Manifest for PWA App Download Configuration -->
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Landing Page Overlay -->
     <div id="landingOverlay" class="overlay-full">
         <div class="overlay-content">
             <img src="ps.jpg.png" alt="Logo" class="main-logo">
-            <h2>Welcome to PulSight</h2>
+            <h2>Welcome to Pulsight</h2>
             <p>Detection requires a stable 40cm distance and good lighting.</p>
             <div class="overlay-btns">
                 <button id="proceedBtn" onclick="closeOverlay()">🚀 Proceed to System</button>
-                <!-- New Download/Install Button Added Here -->
                 <button id="pwaInstallBtn" class="install-overlay-btn" style="display: none;">📲 Install App</button>
             </div>
         </div>
     </div>
 
     <div id="hamburger" onclick="toggleMenu()">☰</div>
+    
     <nav id="sideNav" class="side-nav">
         <a href="javascript:void(0)" class="closebtn" onclick="toggleMenu()">&times;</a>
+        
+        <div class="user-account-section">
+            <p class="section-title">👤 User Account</p>
+            <div id="userGuestView">
+                <input type="text" id="usernameInput" placeholder="Enter username..." class="account-input">
+                <button class="account-btn login-btn" onclick="loginUser(document.getElementById('usernameInput').value)">Log In / Register</button>
+            </div>
+            <div id="userProfileView" style="display: none;">
+                <p class="welcome-text">Welcome, <span id="accountName">Guest</span>!</p>
+                <p class="account-meta">Active since: <span id="accountDate">--</span></p>
+                <button class="account-btn logout-btn" onclick="logoutUser()">Sign Out</button>
+            </div>
+        </div>
+
         <a href="#" onclick="showSection('main')">🏠 Home</a>
+        <a href="#" onclick="showSection('history')">📜 View Saved History</a>
         <a href="#" onclick="showSection('how-it-works')">❓ How It Works</a>
         <a href="#" onclick="showSection('about')">ℹ️ About Us</a>
         
-        <!-- Theme Controls Section inside Nav for clean UI -->
         <div class="theme-menu-section">
             <p class="theme-menu-title">🎨 Accessibility Themes</p>
             <button class="theme-btn theme-pink" onclick="setTheme('pink')">Normal (Pink)</button>
@@ -55,6 +67,8 @@
             <div class="pulse-value" id="pulseValue">--</div>
             <div class="pulse-unit">BPM</div>
             <div id="emotionLabel" class="emotion-text">Emotion: Neutral</div>
+            
+            <button id="saveRecordBtn" class="save-record-btn" onclick="triggerManualSave()">💾 Save This Reading</button>
         </div>
         
         <div class="stats">
@@ -78,19 +92,15 @@
         </div>
     </div>
 
-    <!-- Info Sections -->
     <div id="infoSection" class="overlay-section" style="display:none;">
         <button class="back-btn" onclick="showSection('main')">← Back</button>
         <h2 id="infoTitle"></h2>
         <div id="infoContent"></div>
     </div>
 
-    <!-- IMPORTANT: Load scripts in this exact order -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();"></script>
     <script src="script.js"></script>
 </body>
-</html>
-
 </html>
