@@ -1,10 +1,46 @@
 :root {
+    /* Pink Theme Settings (Original Default) */
     --primary-gradient: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
     --secondary-gradient: linear-gradient(to right, #f78ca0 0%, #f9748f 19%, #fd868c 60%, #fe9a8b 100%);
     --accent-pink: #ff4d6d;
     --deep-red: #800f2f;
     --glass-bg: rgba(255, 255, 255, 0.15);
     --text-light: #ffffff;
+    --stat-box-bg: rgba(128, 15, 47, 0.4);
+    --btn-start-bg: #ffffff;
+    --btn-start-text: #ff0844;
+    --nav-bg: #800f2f;
+    --chart-line-color: #00ff41;
+}
+
+/* Dark Mode Overrides */
+[data-theme="dark"] {
+    --primary-gradient: linear-gradient(135deg, #121212 0%, #1f1f1f 100%);
+    --secondary-gradient: linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 100%);
+    --accent-pink: #00b4d8;
+    --deep-red: #03045e;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --text-light: #f8f9fa;
+    --stat-box-bg: rgba(3, 4, 94, 0.5);
+    --btn-start-bg: #00b4d8;
+    --btn-start-text: #ffffff;
+    --nav-bg: #161a1d;
+    --chart-line-color: #00f5d4;
+}
+
+/* Light Mode Overrides */
+[data-theme="light"] {
+    --primary-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    --secondary-gradient: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    --accent-pink: #0077b6;
+    --deep-red: #0096c7;
+    --glass-bg: rgba(0, 0, 0, 0.05);
+    --text-light: #212529;
+    --stat-box-bg: rgba(0, 119, 182, 0.15);
+    --btn-start-bg: #0077b6;
+    --btn-start-text: #ffffff;
+    --nav-bg: #f8f9fa;
+    --chart-line-color: #0077b6;
 }
 
 body {
@@ -14,6 +50,7 @@ body {
     background-attachment: fixed;
     color: var(--text-light);
     overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* Landing Page Overlay */
@@ -38,6 +75,14 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
+.overlay-btns {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
 #proceedBtn {
     background: white;
     color: #ff0844;
@@ -50,6 +95,25 @@ body {
 }
 
 #proceedBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Added Styling for the New Install Button on the Overlay Page */
+.install-overlay-btn {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 15px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.install-overlay-btn:hover {
+    background: white;
+    color: #ff0844;
     transform: scale(1.05);
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
@@ -84,7 +148,7 @@ body {
     display: block;
 }
 
-/* Pulse Display Section[cite: 3, 4] */
+/* Pulse Display Section */
 .pulse-display {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
@@ -99,7 +163,7 @@ body {
     font-size: 90px;
     font-weight: 900;
     text-shadow: 2px 4px 10px rgba(0,0,0,0.2);
-    color: white;
+    color: var(--text-light);
 }
 
 .pulse-unit {
@@ -118,11 +182,12 @@ body {
 
 .stat-box {
     flex: 1;
-    background: rgba(128, 15, 47, 0.4); /* Deep red translucent */
+    background: var(--stat-box-bg); 
     padding: 15px;
     border-radius: 15px;
     text-align: center;
     border-bottom: 3px solid var(--accent-pink);
+    transition: background 0.3s, border 0.3s;
 }
 
 .stat-label { font-size: 12px; display: block; opacity: 0.8; }
@@ -146,12 +211,13 @@ button#startBtn, button#stopBtn {
 }
 
 button#startBtn {
-    background: #ffffff;
-    color: #ff0844;
+    background: var(--btn-start-bg);
+    color: var(--btn-start-text);
 }
 
 button#startBtn:disabled {
     background: #cccccc;
+    color: #666666;
     cursor: not-allowed;
 }
 
@@ -168,7 +234,7 @@ button#stopBtn {
     z-index: 2000;
     top: 0;
     left: 0;
-    background-color: #800f2f;
+    background-color: var(--nav-bg);
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 60px;
@@ -178,16 +244,68 @@ button#stopBtn {
     padding: 15px 32px;
     text-decoration: none;
     font-size: 20px;
-    color: white;
+    color: var(--text-light);
     display: block;
     transition: 0.3s;
 }
 
-.side-nav a:hover { background: var(--accent-pink); }
+.side-nav a:hover { background: var(--accent-pink); color: white; }
 
 #hamburger {
     font-size: 30px;
     cursor: pointer;
     padding: 15px;
     position: absolute;
+    color: var(--text-light);
+    z-index: 1001;
+}
+
+/* Custom Theme Selector Layout Inside Sidebar */
+.theme-menu-section {
+    padding: 20px 32px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 20px;
+}
+.theme-menu-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+    opacity: 0.7;
+    color: var(--text-light);
+}
+.theme-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: left;
+    transition: 0.2s;
+}
+.theme-pink { background: #ff4d6d; color: white; }
+.theme-dark { background: #1f1f1f; color: #00b4d8; border: 1px solid #00b4d8; }
+.theme-light { background: #ffffff; color: #0077b6; border: 1px solid #0077b6; }
+.theme-btn:hover { transform: translateX(5px); }
+
+/* Overlays Fix */
+.overlay-section {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--primary-gradient);
+    z-index: 1500;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.back-btn {
+    background: var(--glass-bg);
+    color: var(--text-light);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
 }
