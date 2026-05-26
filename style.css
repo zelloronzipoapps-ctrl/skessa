@@ -11,6 +11,8 @@
     --btn-start-text: #ff0844;
     --nav-bg: #800f2f;
     --chart-line-color: #00ff41;
+    --input-bg: rgba(255, 255, 255, 0.2);
+    --input-text: #ffffff;
 }
 
 /* Dark Mode Overrides */
@@ -26,6 +28,8 @@
     --btn-start-text: #ffffff;
     --nav-bg: #161a1d;
     --chart-line-color: #00f5d4;
+    --input-bg: rgba(255, 255, 255, 0.1);
+    --input-text: #f8f9fa;
 }
 
 /* Light Mode Overrides */
@@ -41,6 +45,8 @@
     --btn-start-text: #ffffff;
     --nav-bg: #f8f9fa;
     --chart-line-color: #0077b6;
+    --input-bg: rgba(0, 0, 0, 0.05);
+    --input-text: #212529;
 }
 
 body {
@@ -99,7 +105,6 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* Added Styling for the New Install Button on the Overlay Page */
 .install-overlay-btn {
     background: transparent;
     color: white;
@@ -130,6 +135,11 @@ body {
     border-radius: 50%;
     border: 3px solid white;
     margin-bottom: 10px;
+}
+
+.logo-header {
+    text-align: center;
+    margin-top: 20px;
 }
 
 /* Video & Canvas */
@@ -173,6 +183,34 @@ body {
     opacity: 0.9;
 }
 
+.label-small, .emotion-text {
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Manual Save Button inside Pulse Display Container */
+.save-record-btn {
+    margin-top: 15px;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-record-btn:hover {
+    background: white;
+    color: var(--deep-red);
+    transform: scale(1.03);
+}
+
+[data-theme="dark"] .save-record-btn { color: #00b4d8; border-color: #00b4d8; }
+[data-theme="light"] .save-record-btn { color: #0077b6; border-color: #0077b6; }
+
 /* Stats Boxes */
 .stats {
     display: flex;
@@ -192,6 +230,20 @@ body {
 
 .stat-label { font-size: 12px; display: block; opacity: 0.8; }
 .stat-value { font-size: 18px; font-weight: bold; }
+
+/* Chart Area */
+.chart-container {
+    background: var(--glass-bg);
+    border-radius: 15px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+#pulseChart {
+    width: 100%;
+    height: 150px;
+    display: block;
+}
 
 /* Control Buttons */
 .controls {
@@ -237,7 +289,7 @@ button#stopBtn {
     background-color: var(--nav-bg);
     overflow-x: hidden;
     transition: 0.5s;
-    padding-top: 60px;
+    padding-top: 20px;
 }
 
 .side-nav a {
@@ -251,6 +303,12 @@ button#stopBtn {
 
 .side-nav a:hover { background: var(--accent-pink); color: white; }
 
+.side-nav .closebtn {
+    text-align: right;
+    font-size: 36px;
+    padding-right: 25px;
+}
+
 #hamburger {
     font-size: 30px;
     cursor: pointer;
@@ -260,20 +318,54 @@ button#stopBtn {
     z-index: 1001;
 }
 
-/* Custom Theme Selector Layout Inside Sidebar */
+/* Custom Profile Feature UI styles inside Sidebar */
+.user-account-section {
+    padding: 20px 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+}
+
+.section-title, .theme-menu-title {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    opacity: 0.7;
+    color: var(--text-light);
+}
+
+.account-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: var(--input-bg);
+    color: var(--input-text);
+}
+
+.account-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.login-btn { background: #ffffff; color: #111111; }
+.logout-btn { background: #dc3545; color: #ffffff; }
+.welcome-text { font-size: 18px; margin: 0 0 5px 0; font-weight: bold; }
+.account-meta { font-size: 11px; opacity: 0.7; margin: 0 0 15px 0; }
+
+/* Themes Layout Inside Sidebar */
 .theme-menu-section {
     padding: 20px 32px;
     border-top: 1px solid rgba(255,255,255,0.1);
     margin-top: 20px;
 }
-.theme-menu-title {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-    opacity: 0.7;
-    color: var(--text-light);
-}
+
 .theme-btn {
     display: block;
     width: 100%;
@@ -308,4 +400,37 @@ button#stopBtn {
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
+}
+
+/* History List Layout styles */
+.history-item {
+    background: var(--glass-bg);
+    border-left: 4px solid var(--accent-pink);
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 4px 8px 8px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-meta {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.history-data {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.clear-history-btn {
+    background: var(--deep-red);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
 }
