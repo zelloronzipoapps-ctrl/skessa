@@ -11,9 +11,157 @@ let signalData = [];
 let lastLandmarks = null;
 let isMoving = false;
 const WINDOW_SIZE = 150;
-let deferredPrompt; // Missing variable for PWA Installer logic
+let deferredPrompt; 
 
-// Theme Controller Function
+// Current global reading snapshots for saving
+let currentBpmValue = "--";
+let currentEmotionValue = "Neutral";
+
+// ==========================================
+// USER ACCOUNT SYSTEM & HISTORICAL LOGGER
+// ==========================================
+let currentUser = null;
+
+function initUserAccount() {
+    const savedUser = localStorage.getItem('pulsight_user');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+    }
+    updateUserUI();
+}
+
+function loginUser(username) {
+    if (!username || username.trim() === "") return;
+    currentUser = {
+        username: username.trim(),
+        joinedAt: new Date().toLocaleDateString(),
+        history: []
+    };
+    localStorage.setItem('pulsight_user', JSON.stringify(currentUser));
+    updateUserUI();
+}
+
+function logoutUser() {
+    currentUser = null;
+    localStorage.removeItem('pulsight_user');
+    updateUserUI();
+}
+
+function triggerManualSave() {
+    if (currentBpmValue === "--") {
+        alert("⚠️ No active biometric readings captured yet. Please start detection first.");
+        return;
+    }
+    
+    const record = {
+        timestamp: new Date().toLocaleString(),
+        bpm: currentBpmValue,
+        emotion: currentEmotionValue
+    };
+
+    if (currentUser) {
+        currentUser.history.unshift(record); // Add to beginning of array
+        if (currentUser.history.length > 50) currentUser.history.pop();
+        localStorage.setItem('pulsight_user', JSON.stringify(currentUser));
+        alert(`💾 Saved to ${currentUser.username}'s account history!`);
+    } else {
+        // Fallback for anonymous Guest users
+        let guestHistory = JSON.parse(localStorage.getItem('pulsight_guest_history')) || [];
+        guestHistory.unshift(record);
+        if (guestHistory.length > 50) guestHistory.pop();
+        localStorage.setItem('pulsight_guest_history', JSON.stringify(guestHistory));
+        alert("💾 Saved to local Guest history!");
+    }
+}
+
+function clearAllHistory() {
+    if (confirm("Are you sure you want to permanently delete all saved history entries?")) {
+        if (currentUser) {
+            currentUser.history = [];
+            localStorage.setItem('pulsight_user', JSON.stringify(currentUser));
+        } else {
+            localStorage.removeItem('pulsight_guest_history');
+        }
+        showSection('history'); // Refresh history display view
+    }
+}
+
+function updateUserUI() {
+    const guestView = document.getElementById('userGuestView');
+    const profileView = document.getElementById('userProfileView');
+    const accountName = document.getElementById('accountName');
+    const accountDate = document.getElementById('accountDate');
+
+    if (currentUser) {
+        guestView.style.display = 'none';
+        profileView.style.display = 'block';
+        accountName.innerText = currentUser.username;
+        accountDate.innerText = currentUser.joinedAt;
+    } else {
+        guestView.style.display = 'block';
+        profileView.style.display = 'none';
+    }
+}
+
+// ==========================================
+// NAVIGATION PANELS & UI
+// ==========================================
+function closeOverlay() { 
+    document.getElementById('landingOverlay').style.display = 'none'; 
+}
+
+function toggleMenu() {
+    const nav = document.getElementById("sideNav");
+    nav.style.width = (nav.style.width === "250px") ? "0" : "250px";
+}
+
+function showSection(section) {
+    const mainApp = document.getElementById('mainApp');
+    const infoSection = document.getElementById('infoSection');
+    const title = document.getElementById('infoTitle');
+    const content = document.getElementById('infoContent');
+
+    if (section === 'main') {
+        mainApp.style.display = 'block';
+        infoSection.style.display = 'none';
+    } else {
+        mainApp.style.display = 'none';
+        infoSection.style.display = 'block';
+        
+        if (section === 'history') {
+            title.innerText = "📜 Biometric Reading History";
+            let records = currentUser ? currentUser.history : (JSON.parse(localStorage.getItem('pulsight_guest_history')) || []);
+            
+            if (records.length === 0) {
+                content.innerHTML = "<p>No entries found. Press 'Save This Reading' during a test to see records listed here.</p>";
+            } else {
+                let html = `<button class='clear-history-btn' onclick='clearAllHistory()'>🗑️ Clear All Records</button>`;
+                records.forEach(item => {
+                    html += `
+                        <div class="history-item">
+                            <div>
+                                <div class="history-meta">📅 ${item.timestamp}</div>
+                                <div class="history-meta">🎭 Emotion: ${item.emotion}</div>
+                            </div>
+                            <div class="history-data">${item.bpm} <span style="font-size:12px;">BPM</span></div>
+                        </div>`;
+                });
+                content.innerHTML = html;
+            }
+        } else if (section === 'about') {
+            title.innerText = "About Us";
+            content.innerHTML = "<p>Pulsight Monitor: AI-driven biometric detection.</p>";
+        } else if (section === 'how-it-works') {
+            title.innerText = "How It Works";
+            content.innerHTML = "<ul><li>Stay 40cm away</li><li>Ensure bright lighting</li></ul>";
+        }
+    }
+    toggleMenu();
+}
+
+// ==========================================
+// CORE THEME SETTINGS
+// ==========================================
 function setTheme(themeName) {
     if (themeName === 'pink') {
         document.documentElement.removeAttribute('data-theme');
@@ -22,10 +170,7 @@ function setTheme(themeName) {
     }
     localStorage.setItem('selectedTheme', themeName);
 }
-
-// Load pre-saved theme choice on boot
-const savedTheme = localStorage.getItem('selectedTheme') || 'pink';
-setTheme(savedTheme);
+setTheme(localStorage.getItem('selectedTheme') || 'pink');
 
 function onOpenCvReady() {
     statusText.innerText = "✅ Ready";
@@ -39,32 +184,9 @@ setTimeout(() => {
     }
 }, 5000);
 
-function closeOverlay() { 
-    document.getElementById('landingOverlay').style.display = 'none'; 
-}
-
-function toggleMenu() {
-    const nav = document.getElementById("sideNav");
-    nav.style.width = (nav.style.width === "250px") ? "0" : "250px";
-}
-
-function showSection(section) {
-    const mainApp = document.getElementById('mainApp');
-    const infoSection = document.getElementById('infoSection');
-    if (section === 'main') {
-        mainApp.style.display = 'block';
-        infoSection.style.display = 'none';
-    } else {
-        mainApp.style.display = 'none';
-        infoSection.style.display = 'block';
-        document.getElementById('infoTitle').innerText = section === 'about' ? "About Us" : "How It Works";
-        document.getElementById('infoContent').innerHTML = section === 'about' ? 
-            "Pulsight Monitor: AI-driven biometric detection." : 
-            "<ul><li>Stay 40cm away</li><li>Ensure bright lighting</li></ul>";
-    }
-    toggleMenu();
-}
-
+// ==========================================
+// MEDIAPIPE FACE MESH & BIOMETRICS PROCESSING
+// ==========================================
 const faceMesh = new FaceMesh({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
 });
@@ -87,6 +209,7 @@ faceMesh.onResults((results) => {
         if (isMoving) {
             document.getElementById('signalQuality').innerText = "STABLE REQUIRED";
             pulseValue.innerText = "--"; 
+            currentBpmValue = "--";
             return; 
         }
 
@@ -102,12 +225,12 @@ faceMesh.onResults((results) => {
         const eyeOpen = Math.abs(landmarks[159].y - landmarks[145].y);
         const browDistance = Math.abs(landmarks[21].y - landmarks[251].y); 
         
-        let emotion = "Neutral";
-        if (mouthOpen > 0.05) emotion = "Happy";
-        else if (eyeOpen < 0.008) emotion = "Sad";
-        else if (browDistance < 0.02) emotion = "Angry"; 
+        currentEmotionValue = "Neutral";
+        if (mouthOpen > 0.05) currentEmotionValue = "Happy";
+        else if (eyeOpen < 0.008) currentEmotionValue = "Sad";
+        else if (browDistance < 0.02) currentEmotionValue = "Angry"; 
         
-        document.getElementById('emotionLabel').innerText = `Emotion: ${emotion}`;
+        document.getElementById('emotionLabel').innerText = `Emotion: ${currentEmotionValue}`;
 
         // --- Heart Beat & Skin Logic ---
         const forehead = landmarks[10];
@@ -121,13 +244,13 @@ faceMesh.onResults((results) => {
             let minBpm = (tone === "Tan") ? 82.1 : 79.9;
             let maxBpm = 110;
 
-            // Emotion Overrides
-            if (emotion === "Angry") minBpm = 90.0;
-            if (emotion === "Happy") minBpm = 88.0;
-            if (emotion === "Sad") minBpm = 80.0;
+            if (currentEmotionValue === "Angry") minBpm = 90.0;
+            if (currentEmotionValue === "Happy") minBpm = 88.0;
+            if (currentEmotionValue === "Sad") minBpm = 80.0;
 
             let finalBpm = Math.random() * (maxBpm - minBpm) + minBpm;
-            pulseValue.innerText = finalBpm.toFixed(1);
+            currentBpmValue = finalBpm.toFixed(1);
+            pulseValue.innerText = currentBpmValue;
             lastPulseUpdate = now;
         }
 
@@ -139,22 +262,17 @@ faceMesh.onResults((results) => {
 });
 
 function drawWave(data) {
-    // Dynamically match internal resolution with the rendering size of CSS
     if (pulseChart.width !== pulseChart.clientWidth) {
         pulseChart.width = pulseChart.clientWidth;
         pulseChart.height = pulseChart.clientHeight || 150; 
     }
-
     chartCtx.clearRect(0, 0, pulseChart.width, pulseChart.height);
     chartCtx.beginPath();
-    
     const activeLineColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-line-color').trim();
     chartCtx.strokeStyle = activeLineColor || "#00ff41";
-    
     chartCtx.lineWidth = 3;
     for (let i = 0; i < data.length; i++) {
         const x = (i / WINDOW_SIZE) * pulseChart.width;
-        // Dynamically scales values to look comfortable on screen
         const y = (pulseChart.height / 2) - (data[i] - 50) * (pulseChart.height / 100);
         i === 0 ? chartCtx.moveTo(x, y) : chartCtx.lineTo(x, y);
     }
@@ -166,7 +284,6 @@ const camera = new Camera(video, {
     width: 640, height: 480 
 });
 
-// FIXED: Cleaned up the split line syntax error here
 document.getElementById('startBtn').addEventListener('click', () => { 
     camera.start(); 
     document.getElementById('startBtn').style.display = 'none';
@@ -175,45 +292,27 @@ document.getElementById('startBtn').addEventListener('click', () => {
 
 document.getElementById('stopBtn').addEventListener('click', () => location.reload());
 
-// --- PWA APPLICATION INSTALL SERVICE WORKER BOOT ---
+// --- PWA RUNTIME MANAGER ---
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Pulsight App installation controller active!', reg))
-      .catch(err => console.log('Service worker failure', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fail', err));
   });
 }
 
-// --- MISSING PWA INSTALLATION INTERCEPTOR LOGIC ---
 const installBtn = document.getElementById('pwaInstallBtn');
-
 window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent default browser install banner behavior
     e.preventDefault();
-    // Cache the prompt event so it can be requested manually later
     deferredPrompt = e;
-    // Reveal the "Install App" button inside your landing overlay
-    if (installBtn) {
-        installBtn.style.display = 'inline-block';
-    }
+    if (installBtn) installBtn.style.display = 'inline-block';
 });
-
 if (installBtn) {
     installBtn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
-        // Show the native device download sequence prompt
         deferredPrompt.prompt();
-        // Wait for the user's click resolution outcome
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User installation preference response: ${outcome}`);
-        // Nullify the prompt cache since it can only be used once
         deferredPrompt = null;
-        // Hide the overlay action installer button again safely
         installBtn.style.display = 'none';
     });
 }
 
-window.addEventListener('appinstalled', () => {
-    console.log('Pulsight application successfully installed onto the local system OS.');
-    if (installBtn) installBtn.style.display = 'none';
-});
+// Startup Initialization sequence
+initUserAccount();
