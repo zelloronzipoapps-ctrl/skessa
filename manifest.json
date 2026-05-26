@@ -1,6 +1,6 @@
 {
-  "name": "Pulsight Biometric Detector",
-  "short_name": "Pulsight",
+  "name": "PulSight Pulse Rate Detector",
+  "short_name": "PulSight",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#800f2f",
